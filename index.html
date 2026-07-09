@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>整外專科考題庫</title>
+<meta name="theme-color" content="#2C4A38">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="robots" content="noindex,nofollow">
+<style>
+:root{
+  --forest:#2C4A38; --green:#4A7C59; --pale:#A8D5B5; --steel:#6B7B8D;
+  --bg:#F4F6F3; --card:#FFF; --ink:#22322A; --mut:#6B7B8D; --line:#E1E7E0;
+  --amber:#C99A3B;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+  font-family:-apple-system,"PingFang TC","Noto Sans TC",system-ui,sans-serif;line-height:1.6}
+.wrap{max-width:720px;margin:0 auto;padding:0 14px 40px}
+
+header{background:var(--forest);color:#fff;margin:0 -14px 16px;
+  padding:calc(env(safe-area-inset-top) + 22px) 18px 20px;border-radius:0 0 16px 16px}
+.eyebrow{font-size:11px;letter-spacing:.14em;color:var(--pale);font-weight:600}
+h1{font-size:21px;margin:5px 0 0;font-weight:700;letter-spacing:-.01em}
+
+/* signature: countdown */
+.count{display:flex;align-items:baseline;gap:9px;margin-top:16px;
+  padding-top:15px;border-top:1px solid rgba(255,255,255,.16)}
+.count .n{font-size:44px;font-weight:800;line-height:.95;letter-spacing:-.03em;
+  font-variant-numeric:tabular-nums}
+.count .u{font-size:13px;color:var(--pale);font-weight:600}
+.count .d{margin-left:auto;text-align:right;font-size:11px;color:var(--pale);line-height:1.45}
+.count .d b{display:block;color:#fff;font-size:12.5px;font-weight:700}
+
+.sect{font-size:11.5px;font-weight:700;color:var(--mut);letter-spacing:.05em;margin:0 2px 10px}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}
+a.dom{display:block;text-decoration:none;background:var(--card);border:1px solid var(--line);
+  border-radius:13px;padding:13px;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:transform .12s}
+a.dom:active{transform:scale(.98)}
+a.dom:focus-visible{outline:2.5px solid var(--green);outline-offset:2px}
+.dom .top{display:flex;align-items:center;gap:7px}
+.dom .code{flex:none;width:34px;height:22px;border-radius:6px;background:var(--forest);color:#fff;
+  font-size:10px;font-weight:700;letter-spacing:.04em;display:flex;align-items:center;justify-content:center}
+.dom .zh{font-size:14px;font-weight:700;color:var(--ink)}
+.dom .n{font-size:11.5px;color:var(--mut);margin-top:9px}
+.dom .n b{color:var(--green);font-weight:700}
+.dom .go{font-size:11.5px;color:var(--green);font-weight:700;margin-top:3px}
+
+.dom.soon{background:#EFF2EE;border-style:dashed;box-shadow:none;cursor:default}
+.dom.soon .code{background:#C3CCC4}
+.dom.soon .zh{color:var(--mut)}
+.dom.soon .n{color:#9AA69C}
+
+.note{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:14px 15px;
+  font-size:12.5px;color:var(--mut);line-height:1.7}
+.note b{color:var(--forest)}
+.note .t{font-weight:700;color:var(--forest);font-size:13px;margin-bottom:5px}
+
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+@media(min-width:560px){.grid{grid-template-columns:1fr 1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">台灣整形外科專科醫師考試</div>
+  <h1>考古題庫</h1>
+  <div class="count">
+    <span class="n" id="days">—</span><span class="u">天</span>
+    <div class="d"><b>2026 / 08 / 23</b>考試當日</div>
+  </div>
+</header>
+
+<div class="sect">已上線</div>
+<div class="grid" id="live"></div>
+
+<div class="sect">準備中</div>
+<div class="grid" id="soon"></div>
+
+<div class="note">
+  <div class="t">進度存在這支手機裡</div>
+  作答紀錄存於瀏覽器，各領域<b>分開記錄</b>、不會互相影響。換裝置或清除瀏覽器資料前，先到各 App 的
+  <b>存檔</b>頁「匯出全部進度」，把代碼保存起來。
+</div>
+
+</div>
+
+<script>
+const EXAM = new Date(2026, 7, 23); // 2026-08-23
+
+const DOMAINS = [
+  {code:'HND', zh:'手・上肢',   file:'hnd.html', n:315},
+  {code:'BRE', zh:'乳房',       file:'bre.html', n:241},
+  {code:'CRF', zh:'顱顏'},
+  {code:'HNK', zh:'頭頸'},
+  {code:'AES', zh:'美容'},
+  {code:'TRK', zh:'軀幹'},
+  {code:'LGA', zh:'下肢・淋巴'},
+  {code:'SKB', zh:'皮膚・燒傷'},
+  {code:'BAS', zh:'基礎'},
+];
+
+// countdown
+(function(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d = Math.round((EXAM - today) / 86400000);
+  document.getElementById('days').textContent = d > 0 ? d : 0;
+})();
+
+// render
+const live = document.getElementById('live');
+const soon = document.getElementById('soon');
+
+DOMAINS.forEach(d => {
+  if (d.file) {
+    const a = document.createElement('a');
+    a.className = 'dom';
+    a.href = d.file;
+    a.innerHTML =
+      '<div class="top"><span class="code">' + d.code + '</span>' +
+      '<span class="zh">' + d.zh + '</span></div>' +
+      '<div class="n"><b>' + d.n + '</b> 題</div>' +
+      '<div class="go">開始練習 →</div>';
+    live.appendChild(a);
+  } else {
+    const el = document.createElement('div');
+    el.className = 'dom soon';
+    el.innerHTML =
+      '<div class="top"><span class="code">' + d.code + '</span>' +
+      '<span class="zh">' + d.zh + '</span></div>' +
+      '<div class="n">尚未建立</div>';
+    soon.appendChild(el);
+  }
+});
+</script>
+</body>
+</html>
