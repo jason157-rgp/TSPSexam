@@ -169,12 +169,12 @@ const SUBORDER=Object.keys(SUBS);
 const MASTERY=2;                 // 連續答對次數 → 已掌握
 const SR=[1,3,7,16,30];          // 答對後到期間隔(天), 依連續答對數
 const DAY=864e5;
-let S={P:{},star:{},last:null,shuffle:true};
+let S={P:{},star:{},note:{},last:null,shuffle:true};
 let pool=[], idx=0, sel=new Set(), locked=false, mode='home', curCat=null;
 let orderMap={}, addedRetry=new Set();
 
 function load(){
-  try{const r=localStorage.getItem(LS);if(r){const o=JSON.parse(r);S.P=o.P||{};S.star=o.star||{};S.last=o.last||null;S.shuffle=(o.shuffle!==false);}}catch(e){}
+  try{const r=localStorage.getItem(LS);if(r){const o=JSON.parse(r);S.P=o.P||{};S.star=o.star||{};S.note=o.note||{};S.last=o.last||null;S.shuffle=(o.shuffle!==false);}}catch(e){}
   // 自 v1(status模型)遷移
   try{if(!Object.keys(S.P).length){const r1=localStorage.getItem(LS1);if(r1){const o=JSON.parse(r1);const st=o.status||{};for(const id in st){const ok=st[id]==='ok';S.P[id]={n:1,s:ok?1:0,m:false,f:ok?1:0,w:!ok,due:Date.now()+(ok?SR[0]:1)*DAY};}S.star=o.star||{};S.last=o.last||null;}}}catch(e){}
 }
@@ -311,6 +311,7 @@ function render(){
    +(isHF(q)?'<span class="pill hf">高頻 '+q.years.length+'年</span>':'')
    +(p&&p.m?'<span class="pill mast">✓已掌握</span>':(p&&p.w?'<span class="pill flag">錯題</span>':''))
    +(q.conflict?'<span class="pill flag">⚠答案/版本分歧</span>':'')
+   +((S.note&&S.note[q.id])?'<span class="pill" style="background:#EAF0FF;color:#33529E;border:1px solid #C7D4F0">📝 有筆記</span>':'')
    +'<button class="starbtn '+on+'" id="star" title="收藏">'+(on?'★':'☆')+'</button>'
    +'</div><div class="stem">'+esc(q.stem)+'</div>';
   for(const L of optOrder(q))
@@ -354,6 +355,14 @@ function grade(){
   s.innerHTML=(q.etype==='ai'?'<span class="srctag ai">AI補寫 · 待複查</span>':(q.expl?'<span class="srctag orig">原檔詳解</span>':'<span class="srctag none">無詳解</span>'))+(q.cite?'<span class="cite">'+esc(q.cite)+'</span>':'');
   card.appendChild(s);
   if(q.conflict){var cf=document.createElement('div');cf.className='keybox warn';cf.innerHTML='⚠ 跨年／跨書分歧：'+fmt(q.conflict);card.appendChild(cf);}
+  // 📝 我的筆記（答題後出現，自動存，隨進度匯出）
+  const nb=document.createElement('div');nb.className='notewrap';nb.style.cssText='margin-top:12px';
+  nb.innerHTML='<div style="font-weight:700;color:var(--forest);font-size:13px;margin-bottom:6px">📝 我的筆記</div>';
+  const nta=document.createElement('textarea');nta.className='ta';nta.placeholder='寫下你對這題的筆記／口訣／易錯點（自動儲存，會隨「匯出進度」一起備份）';
+  nta.value=(S.note&&S.note[q.id])?S.note[q.id]:'';
+  const nst=document.createElement('div');nst.className='mini';nst.style.textAlign='left';nst.textContent='';
+  nta.oninput=()=>{ if(!S.note)S.note={}; const v=nta.value; if(v.trim())S.note[q.id]=v; else delete S.note[q.id]; clearTimeout(nta._t); nst.textContent='輸入中…'; nta._t=setTimeout(()=>{ save(); nst.textContent='✓ 筆記已存'; setTimeout(()=>nst.textContent='',1200); },600); };
+  nb.appendChild(nta);nb.appendChild(nst);card.appendChild(nb);
   // #10 稍後再問我
   const rt=document.createElement('div');rt.className='retry';
   const rb=document.createElement('button');rb.textContent='🔁 稍後再問我（本回合尾端再考）';
@@ -381,6 +390,11 @@ function renderData(){
   if(!st.length)h+='<div class="dim">尚無收藏。作答時點右上角 ☆ 收藏。</div>';
   else{h+='<div class="wlist">';st.forEach(id=>{const q=DATA.find(x=>x.id===id);h+='<div class="wrow" data-goto="'+id+'"><span class="wid s">★ '+id+'</span><span class="wq">'+esc(q.stem.slice(0,42))+(q.stem.length>42?'…':'')+'</span></div>';});h+='</div>';}
   h+='</div>';
+  const nids=S.note?Object.keys(S.note).filter(id=>(S.note[id]||'').trim()):[];
+  h+='<div class="card"><div class="h3">📝 我的筆記（'+nids.length+'）</div>';
+  if(!nids.length)h+='<div class="dim">尚無筆記。作答送出後，題目下方會出現「📝 我的筆記」欄；寫下的內容自動存並隨「匯出進度」一起備份。</div>';
+  else{h+='<div class="wlist">';nids.forEach(id=>{const q=DATA.find(x=>x.id===id);if(!q)return;const nt=S.note[id];h+='<div class="wrow" data-goto="'+id+'"><span class="wid s">📝 '+id+'</span><span class="wq">'+esc(nt.slice(0,54))+(nt.length>54?'…':'')+'</span></div>';});h+='</div>';}
+  h+='</div>';
   h+='<div class="card"><div class="h3">進度存檔（匯出／匯入）</div>'
    +'<div class="dim">含<b>作答/熟練度＋收藏＋設定</b>，可跨裝置還原；日後也能交回給我彙整複習。</div>'
    +'<textarea class="ta" id="io" placeholder="進度代碼會顯示在此，或貼上要匯入的代碼"></textarea>'
@@ -391,7 +405,7 @@ function renderData(){
   document.getElementById('swShuf').onclick=function(){S.shuffle=!S.shuffle;this.classList.toggle('on',S.shuffle);orderMap={};save();};
   app.querySelectorAll('.wrow').forEach(r=>r.onclick=()=>gotoId(r.dataset.goto));
   document.getElementById('exp').onclick=()=>{document.getElementById('io').value=btoa(unescape(encodeURIComponent(JSON.stringify(S))));msg('已產生完整進度代碼，請複製保存。');};
-  document.getElementById('imp').onclick=()=>{try{const v=document.getElementById('io').value.trim();const o=JSON.parse(decodeURIComponent(escape(atob(v))));S.P=o.P||{};S.star=o.star||{};S.last=o.last||null;S.shuffle=(o.shuffle!==false);save();msg('✓ 匯入成功（作答 '+Object.keys(S.P).length+' · 收藏 '+Object.keys(S.star).length+'）');hdr();renderData();}catch(e){msg('✗ 代碼無效，請確認。');}};
+  document.getElementById('imp').onclick=()=>{try{const v=document.getElementById('io').value.trim();const o=JSON.parse(decodeURIComponent(escape(atob(v))));S.P=o.P||{};S.star=o.star||{};S.note=o.note||{};S.last=o.last||null;S.shuffle=(o.shuffle!==false);save();msg('✓ 匯入成功（作答 '+Object.keys(S.P).length+' · 收藏 '+Object.keys(S.star).length+'）');hdr();renderData();}catch(e){msg('✗ 代碼無效，請確認。');}};
   document.getElementById('cpy').onclick=()=>{const t=document.getElementById('io');if(!t.value){msg('請先按「匯出全部進度」產生代碼。');return;}t.select();
     const fb=()=>{try{document.execCommand('copy');msg('已複製。');}catch(e){msg('請長按手動複製。');}};
     if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t.value).then(()=>msg('已複製。')).catch(fb);}else fb();};
@@ -405,7 +419,7 @@ function renderData(){
       return;
     }
     clearTimeout(b._t);
-    S={P:{},star:{},last:null,shuffle:S.shuffle};
+    S={P:{},star:{},note:{},last:null,shuffle:S.shuffle};
     orderMap={}; addedRetry=new Set(); pool=[]; idx=0; sel=new Set(); locked=false;
     try{localStorage.removeItem(LS);localStorage.removeItem(LS1);}catch(e){}
     save(); hdr(); renderData();
