@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-Hant"><head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>CRF 顱顏 · 整外專科考古題</title>
 <style>
 :root{--green:#4A7C59;--forest:#2C4A38;--steel:#6B7B8D;--pale:#A8D5B5;--amber:#C99A3B;
@@ -10,7 +10,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
 font-family:-apple-system,"PingFang TC","Noto Sans TC",system-ui,sans-serif;line-height:1.6}
-.wrap{max-width:720px;margin:0 auto;padding:0 14px 96px}
+.wrap{max-width:720px;margin:0 auto;padding:0 14px calc(112px + env(safe-area-inset-bottom))}
 header{position:sticky;top:0;z-index:20;background:var(--forest);color:#fff;
 margin:0 -14px 14px;padding:12px 16px;border-radius:0 0 14px 14px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
 .htop{display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -66,7 +66,7 @@ color:var(--steel);font-weight:700;font-size:13px;display:flex;align-items:cente
 .retry button.done{background:var(--rightbg);color:var(--right);border-color:#BFE0C8}
 .done{text-align:center;padding:34px 16px}.done h2{color:var(--forest);margin:.2em 0}
 .mini{font-size:12px;color:var(--mut);text-align:center;margin-top:6px}
-.foot{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:9px 14px;z-index:15}
+.foot{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:9px 14px calc(14px + env(safe-area-inset-bottom));z-index:15}
 .foot .in{max-width:720px;margin:0 auto;display:flex;gap:9px}
 .btn{flex:1;padding:13px;border:none;border-radius:11px;font-size:15px;font-weight:700;background:var(--green);color:#fff;cursor:pointer}
 .btn:disabled{background:#C7D3C9}.btn.next{background:var(--forest)}
